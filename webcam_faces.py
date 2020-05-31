@@ -6,36 +6,51 @@ Created on Sat May 30 17:22:10 2020
 """
 
 import cv2
-#import sys
+import time
 
 cap = cv2.VideoCapture(0)
 
-# Get user supplied values
-#imagePath = sys.argv[1]
 cascPath = "haarcascade_frontalface_default.xml"
-
-# Create the haar cascade
 faceCascade = cv2.CascadeClassifier(cascPath)
 
-# Read the image
-#image = cv2.imread(imagePath)
-_, image = cap.read()
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+window_name = 'Face it'
 
-# Detect faces in the image
-faces = faceCascade.detectMultiScale(
-    gray,
-    scaleFactor=1.1,
-    minNeighbors=5,
-    minSize=(30, 30)
-    #, flags = cv2.CV_HAAR_SCALE_IMAGE
-)
+frame_counter = 0
+face_counter = 0
+t0 = time.perf_counter()
+while(True):
+    _, image = cap.read()
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Detect faces in the image
+    faces = faceCascade.detectMultiScale(
+        gray,
+        scaleFactor=1.1,
+        minNeighbors=5,
+        minSize=(30, 30)
+    )
+    
+    for (x, y, w, h) in faces:
+        cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), 2)
+    
+    cv2.imshow(window_name, image)
+    frame_counter += 1
+    if len(faces) > 0:
+        face_counter += 1
+    
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
-print("Found {0} faces!".format(len(faces)))
+t1 = time.perf_counter()
 
-# Draw a rectangle around the faces
-for (x, y, w, h) in faces:
-    cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), 2)
+print(int(frame_counter/(t1-t0)),'frames per second')
+print('One or more faces in', int(face_counter/frame_counter*100), '% of frames.')
 
-cv2.imshow("Faces found", image)
-cv2.waitKey(0)
+# When everything done, release the capture
+cap.release()
+cv2.destroyWindow(window_name)
+
+
+#-----------
+
+
